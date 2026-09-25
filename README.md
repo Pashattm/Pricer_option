@@ -370,6 +370,8 @@ import numpy as np
 from statistics import NormalDist
 ```
 
+**Traduction en phrase :** Je charge NumPy sous le nom np et je récupère NormalDist pour utiliser la loi normale.
+
 `as np` donne un nom court à NumPy. `from ... import NormalDist` importe seulement l’outil de loi normale. Ces lignes rendent les outils disponibles ; elles ne calculent aucun prix.
 
 ### 4.2 yfinance et recherche de symboles
@@ -390,6 +392,8 @@ def search_tickers(query, max_results=8):
         return []
 ```
 
+**Traduction en phrase :** Je charge yfinance sous le nom yf. Lorsque je reçois une recherche, je demande les résultats Yahoo, avec une limite de huit par défaut. Si la demande échoue, je renvoie une liste vide.
+
 `yf` est l’alias de yfinance. `max_results=8` est un défaut : passer 3 demande au plus trois résultats ; passer 20 en demande davantage, selon le fournisseur. `.quotes` récupère les résultats de recherche. Toute exception renvoie `[]` : panne et absence de résultat deviennent indistinguables.
 
 ### 4.3 Nettoyer les résultats Yahoo
@@ -408,6 +412,8 @@ def search_tickers(query, max_results=8):
     ]
 ```
 
+**Traduction en phrase :** Pour chaque résultat possédant un symbole, je conserve son symbole, son nom et sa place de cotation. Pour le nom, je prends le nom court s’il existe, sinon le nom long, sinon le symbole.
+
 La compréhension parcourt les résultats, conserve ceux ayant un symbole et produit trois champs. Les `or` choisissent le premier nom non vide. Ici, `r` est un résultat Yahoo, pas le taux financier. `.get('symbol')` lit la clé et renvoie `None` si elle manque, contrairement à `r['symbol']` qui déclencherait une erreur. `a or b` garde a si sa valeur est considérée vraie, sinon prend b : ici, un nom vide ou absent fait passer au suivant.
 
 ### 4.4 Dernier prix et devise
@@ -425,6 +431,8 @@ def get_devise(ticker):
     return yf.Ticker(ticker).fast_info["currency"]
 ```
 
+**Traduction en phrase :** Lorsque je reçois un ticker, je récupère son dernier prix accessible et le convertis en nombre. Dans la seconde fonction, je récupère sa devise de cotation.
+
 `Ticker(ticker)` désigne le titre demandé. `fast_info['last_price']` lit son dernier cours accessible ; `['currency']`, sa devise. Ces crochets utilisent des clés textuelles, pas des positions : les remplacer par `0` ne signifie pas « premier cours ». `float` convertit le cours en nombre.
 
 ### 4.5 VIX : donnée de contexte, pas volatilité calibrée
@@ -436,6 +444,8 @@ def get_vix():
     """Dernier niveau du VIX (volatilité implicite du S&P 500), en points de %."""
     return float(yf.Ticker("^VIX").fast_info["last_price"])
 ```
+
+**Traduction en phrase :** Je récupère le dernier niveau accessible du symbole VIX et je le renvoie sous forme de nombre.
 
 `^VIX` fixe le symbole interrogé. Le niveau 20 signifie 20 points de pourcentage. Le VIX concerne la volatilité attendue à environ 30 jours du S&P 500 : ce n’est pas la volatilité de toute action. Il est renvoyé comme contexte, sans alimenter automatiquement `sigma`.
 
@@ -451,6 +461,8 @@ def Npdf(x):
     return NormalDist().pdf(x)
 ```
 
+**Traduction en phrase :** Lorsque je reçois x, la première fonction renvoie la probabilité cumulée de la normale jusqu’à x ; la seconde renvoie la densité normale en x.
+
 `NormalDist()` sans argument représente une normale de moyenne 0 et d’écart-type 1. `cdf(x)` donne P(Z ≤ x), donc `cdf(0)=0.5`. `pdf(x)` donne une densité, pas une probabilité ponctuelle. Ces fonctions évitent de répéter les appels complets.
 
 ### 4.7 Factoriser d1 et d2
@@ -464,6 +476,8 @@ def _d1_d2(S0, K, T, r, q, sigma):
     d2 = d1 - sigma * np.sqrt(T)
     return d1, d2
 ```
+
+**Traduction en phrase :** À partir du spot, du strike, de la maturité, des taux et de la volatilité, je calcule d1. Je lui retire la volatilité multipliée par la racine de la maturité pour obtenir d2, puis je renvoie les deux nombres.
 
 Le `_` signale une fonction interne par convention. `log(S0/K)` mesure la moneyness ; `sigma**2` est le carré de la volatilité ; `sqrt(T)` la racine de la maturité. `return d1, d2` renvoie une paire. Remplacer `/2` par `/3` changerait la formule financière, pas un réglage numérique.
 
@@ -484,6 +498,8 @@ def black_scholes(S0, K, T, r, q, sigma, option_type):
     return prix
 ```
 
+**Traduction en phrase :** Je récupère d1 et d2. Si le type demandé est call, je calcule la formule du call ; sinon, je calcule celle du put. Je renvoie le prix obtenu.
+
 `d1, d2 = ...` décompose la paire renvoyée. `if` distingue le call ; `else` traite tout le reste comme un put, même une chaîne invalide en appel direct. Les exponentielles intègrent dividende continu et actualisation. Le résultat est la prime unitaire longue ; le sens vendeur sera traité ailleurs.
 
 ### 4.9 Monte-Carlo : simuler uniquement la date finale
@@ -500,6 +516,8 @@ def monte_carlo(S0, K, T, r, q, sigma, option_type, n_simulations):
         + sigma * np.sqrt(T) * Z
     )
 ```
+
+**Traduction en phrase :** Je tire un choc normal par simulation. Pour chaque choc, je calcule un prix final du sous-jacent en appliquant la formule exponentielle du modèle.
 
 Dans `normal(0,1,N)`, 0 est la moyenne, 1 l’écart-type et N le nombre de tirages. Mettre 2 à la place de 1 doublerait l’écart-type des chocs ; la volatilité étant déjà appliquée ensuite, cela fausserait le modèle. Augmenter N augmente le coût et réduit généralement le bruit statistique. L’exponentielle simule directement les prix finaux : aucune trajectoire intermédiaire n’est nécessaire pour une vanilla européenne. Pas de graine dans la fonction : deux appels peuvent donner des résultats différents.
 
@@ -518,6 +536,8 @@ Dans `normal(0,1,N)`, 0 est la moyenne, 1 l’écart-type et N le nombre de tira
     return prix
 ```
 
+**Traduction en phrase :** Si je valorise un call, je garde la partie positive du prix final moins le strike ; sinon, celle du strike moins le prix final. Je fais la moyenne de ces payoffs, je l’actualise et je renvoie le prix.
+
 `maximum(...,0)` applique le droit de ne pas exercer. `mean` estime l’espérance, puis `exp(-r*T)` l’actualise. Remplacer `mean` par `sum` multiplierait l’estimation par le nombre de simulations. `np.maximum` compare chaque case à zéro : `[-5,0,8]` devient `[0,0,8]`. `np.mean` additionne les cases puis divise par leur nombre ; `np.sum` les additionne seulement. Ces opérations portent ici sur tous les scénarios.
 
 ### 4.11 LSM : calendrier et matrice de trajectoires
@@ -533,6 +553,8 @@ def longstaff_schwartz(S0, K, T, r, q, sigma, option_type, n_simulations, n_step
     prix = np.zeros((n_simulations, n_steps + 1))
     prix[:, 0] = S0
 ```
+
+**Traduction en phrase :** Je divise la maturité en intervalles de temps. Je prépare un tableau avec une ligne par simulation et une colonne par date, aujourd’hui compris. Je mets le spot initial dans la première colonne de toutes les lignes.
 
 `dt=T/n_steps` est la durée d’un pas. `n_steps=100` signifie 100 intervalles et 101 dates, grâce au `+1`. `prix[:,0]=S0` remplit la colonne initiale. Avec 200 pas, l’exercice est examiné plus souvent, mais le coût augmente ; 0 provoquerait une division par zéro. Dans `zeros((N,M+1))`, le tuple indique N lignes et M+1 colonnes. Dans `prix[:,0]`, `:` sélectionne toutes les lignes et 0 la première colonne ; 1 désignerait la deuxième, −1 la dernière. Ici, chaque ligne est une trajectoire et chaque colonne une date.
 
@@ -551,6 +573,8 @@ def longstaff_schwartz(S0, K, T, r, q, sigma, option_type, n_simulations, n_step
         )
 ```
 
+**Traduction en phrase :** Pour chaque date après aujourd’hui, je tire de nouveaux chocs et je calcule les prix de cette date à partir de ceux de la date précédente.
+
 La boucle remplit les dates 1 à `n_steps`, incluses. `t-1` lit la date précédente ; `t` écrit la nouvelle. Chaque pas utilise de nouveaux chocs. La transition MBG est exacte entre deux dates ; c’est l’ensemble des dates d’exercice qui est discret. `range(1,n_steps+1)` part de 1 et exclut sa borne finale : avec 4 pas, il produit 1,2,3,4. Sans le `+1`, la dernière date ne serait pas calculée. Le pas omis vaut +1 ; un pas de 2 sauterait une date sur deux.
 
 ### 4.13 LSM : valeurs intrinsèques et condition terminale
@@ -565,6 +589,8 @@ La boucle remplit les dates 1 à `n_steps`, incluses. `t-1` lit la date précéd
 
     cashflow = payoff[:, -1]
 ```
+
+**Traduction en phrase :** Je calcule la valeur d’exercice du call ou du put pour chaque trajectoire à chaque date. Je prends ensuite les payoffs de la dernière date comme cashflows de départ.
 
 Le payoff est calculé pour toutes les dates. `[:, -1]` prend la dernière colonne, donc les flux à maturité. C’est une vue : les modifications de `cashflow` affectent cette colonne. `.copy()` éviterait cet alias ; les colonnes antérieures restent indépendantes de cette modification.
 
@@ -582,6 +608,8 @@ Le payoff est calculé pour toutes les dates. `[:, -1]` prend la dernière colon
         if np.sum(itm) > 2:
 ```
 
+**Traduction en phrase :** Je parcours les dates en reculant, jusqu’à la première date après aujourd’hui. À chaque étape, j’actualise les cashflows d’une période et je repère les trajectoires dont le payoff est positif. S’il y en a au moins trois, je poursuis avec la régression.
+
 On revient de l’avant-dernière date jusqu’à la date 1. `*=` actualise tous les flux d’un pas. `>0` repère les options dans la monnaie ; `sum(itm)>2` signifie au moins trois observations, pour trois coefficients quadratiques. Changer `>` en `>=` autoriserait seulement deux observations, insuffisantes pour identifier trois coefficients.
 
 ### 4.15 LSM : variables explicative et cible
@@ -598,6 +626,8 @@ On revient de l’avant-dernière date jusqu’à la date 1. `*=` actualise tous
             X_norm = (X - X_mean) / X_std
 ```
 
+**Traduction en phrase :** Je sélectionne les spots et les cashflows des trajectoires retenues. Je calcule la moyenne et l’écart-type de ces spots, puis je les centre et les réduis.
+
 Le masque `itm` sélectionne X et Y pour les mêmes trajectoires. X contient leurs spots actuels ; Y, les flux futurs déjà actualisés. Le centrage-réduction améliore la stabilité de la régression. `X.std()` peut valoir zéro ; aucun garde-fou n’est prévu. `X.mean()` calcule la moyenne ; `X.std()` calcule l’écart-type, avec un diviseur égal au nombre d’observations par défaut. `(X-X_mean)/X_std` recentre les valeurs sur zéro et ramène leur dispersion à une échelle commune. Si tous les X sont identiques, la division par zéro rend le résultat inutilisable.
 
 ### 4.16 LSM : régression et décision d’exercice
@@ -613,6 +643,8 @@ Le masque `itm` sélectionne X et Y pour les mêmes trajectoires. X contient leu
             indices = np.where(itm)[0]
             cashflow[indices[exercice]] = payoff[indices[exercice], t]
 ```
+
+**Traduction en phrase :** J’ajuste un polynôme de degré deux aux spots normalisés et aux cashflows, puis je l’évalue pour estimer la continuation. Je repère les trajectoires où exercer rapporte davantage, je retrouve leurs indices dans le tableau complet et je remplace leur cashflow futur par le payoff immédiat.
 
 Le `2` de `polyfit` signifie polynôme quadratique. `polyval` calcule la continuation estimée. `exercice` teste si l’intrinsèque la dépasse ; `where(itm)[0]` retrouve les indices globaux. On remplace le flux futur par le flux d’exercice, on ne les additionne pas. `polyfit(X,Y,2)` ajuste trois coefficients : a*x²+b*x+c ; 1 donnerait une droite, 0 une constante et 3 un polynôme cubique. `polyval` évalue ces coefficients dans l’ordre décroissant des puissances. `where(itm)` renvoie un tuple contenant un tableau d’indices ; `[0]` extrait ce tableau entier, pas son premier indice. Pour `[False,True,False,True]`, il vaut `[1,3]`. `[1]` échouerait car ce tuple ne contient qu’un élément. `indices[exercice]` conserve ensuite les indices où le masque exercice est vrai.
 
@@ -631,6 +663,8 @@ Le `2` de `polyfit` signifie polynôme quadratique. `polyval` calcule la continu
 
     return max(prix_lsm, payoff_immediat)
 ```
+
+**Traduction en phrase :** Je fais la moyenne des cashflows et je les actualise une dernière fois jusqu’à aujourd’hui. Je calcule aussi le payoff d’un exercice immédiat et je renvoie le plus grand des deux montants.
 
 Après la boucle, les flux sont à la date 1 : le dernier facteur les ramène à aujourd’hui. Le `max` final impose la valeur d’exercice immédiat. Remplacer par `min` pourrait donner un prix inférieur à ce qu’un détenteur reçoit en exerçant maintenant. Le plancher ne garantit pas la précision du modèle.
 
@@ -653,6 +687,8 @@ def grecs_primaires_bs(S0, K, T, r, q, sigma, option_type):
     Vega = S0*np.exp(-q*T)*Npdf(d1)*np.sqrt(T)
 ```
 
+**Traduction en phrase :** Je récupère d1 et d2. Je calcule le Delta avec la formule du call ou du put, puis je calcule Gamma et Vega avec les formules communes aux deux types.
+
 Delta change avec call/put ; Gamma et Vega ont ici la même formule pour les deux types. `Npdf(d1)` est la densité normale. Delta est la variation locale du prix par unité de spot ; Gamma est la variation de Delta par unité de spot ; Vega est la variation du prix par unité de volatilité décimale. Pour +1 point de volatilité, on multiplie Vega par 0,01. Le `-1` dans le Delta put est une soustraction issue de la formule, pas un indice de tableau.
 
 ### 4.19 Theta et Rho
@@ -671,6 +707,8 @@ Delta change avec call/put ; Gamma et Vega ont ici la même formule pour les deu
         Rho = -K*T*np.exp(-r*T)*Ncdf(-d2)
 ```
 
+**Traduction en phrase :** Selon que l’option est un call ou un put, je calcule son Theta, puis son Rho, avec les signes correspondants.
+
 Theta mesure le temps qui passe, donc l’opposé de la dérivée en maturité restante. Rho mesure l’effet du taux décimal. Les branches call/put ajustent les signes des termes de taux et dividende. `2*sqrt(T)` est un dénominateur mathématique, pas une valeur de précision à choisir.
 
 ### 4.20 Retourner les cinq sensibilités
@@ -686,6 +724,8 @@ Theta mesure le temps qui passe, donc l’opposé de la dérivée en maturité r
         "Rho": Rho
     }
 ```
+
+**Traduction en phrase :** Je rassemble Delta, Gamma, Vega, Theta et Rho dans un dictionnaire, puis je le renvoie.
 
 Les accolades créent un dictionnaire : nom de grecque → valeur. On lit ensuite `grecs['Delta']`. Les clés sont sensibles à la casse. Aucun arrondi ni multiplication par le sens de la position n’a lieu ici.
 
@@ -706,6 +746,8 @@ def grecs_secondaires_bs(S0, K, T, r, q, sigma, option_type):
         Delta = (np.exp(-q*T))*(Ncdf(d1)-1)
 ```
 
+**Traduction en phrase :** Je calcule d1, d2, Vega et Gamma. Je calcule également le Delta correspondant au call ou au put pour préparer les sensibilités suivantes.
+
 On recalcule d1, d2, Vega, Gamma et Delta pour les formules suivantes. Ces variables locales évitent de recopier leurs expressions partout. Une factorisation avec les grecques primaires réduirait encore les répétitions.
 
 ### 4.22 Vanna et Vomma
@@ -717,6 +759,8 @@ On recalcule d1, d2, Vega, Gamma et Delta pour les formules suivantes. Ces varia
     
     Vomma = (Vega*d1*d2)/sigma
 ```
+
+**Traduction en phrase :** Je calcule Vanna à partir de d2 et de la densité normale, puis Vomma à partir de Vega, de d1 et de d2.
 
 Vanna mesure comment Delta varie avec sigma ; Vomma, comment Vega varie avec sigma. Les divisions par sigma supposent une volatilité non nulle. Pour un mouvement de 1 point de volatilité, la variation de Vega est approximativement `Vomma*0.01`.
 
@@ -731,6 +775,8 @@ Vanna mesure comment Delta varie avec sigma ; Vomma, comment Vega varie avec sig
         Charm = -q*np.exp(-q*T)*Ncdf(-d1)-np.exp(-q*T)*Npdf(d1)*(2*(r-q)*T-d2*sigma*np.sqrt(T))/(2*T*sigma*np.sqrt(T))
 ```
 
+**Traduction en phrase :** Je calcule Charm avec la formule correspondant au call ou au put.
+
 Charm est la dérivée de Delta en temps écoulé. Il peut faire varier la couverture même si le spot reste fixe. `Ncdf(-d1)` évalue la fonction au nombre opposé de d1 : ce `-` n’a aucun lien avec l’accès au dernier élément d’un tableau.
 
 ### 4.24 Color : anomalie de formule à connaître
@@ -740,6 +786,8 @@ Charm est la dérivée de Delta en temps écoulé. Il peut faire varier la couve
 ```python
     Color = -np.exp(-q*T)*Npdf(d1)/(2*S0*T*sigma*np.sqrt(T))*(2*q*T+1+(2*(r-q)*T-d2*sigma*np.sqrt(T)))*d1/(sigma*np.sqrt(T))
 ```
+
+**Traduction en phrase :** Je calcule la valeur appelée Color en multipliant les facteurs dans l’ordre imposé par les parenthèses. Dans cette écriture, le dernier facteur contenant d1 multiplie toute la parenthèse précédente : c’est l’erreur expliquée ci-dessous.
 
 **Erreur à corriger :** le facteur `d1/(sigma*sqrt(T))` multiplie trop de termes. Avec $B=2(r-q)T-d_2\sigma\sqrt T$, la dérivée correcte en maturité est :
 
@@ -762,6 +810,8 @@ La convention calendaire prend l’opposé. La ligne actuelle ne correspond gén
     Lambda = Delta * S0 / prix
 ```
 
+**Traduction en phrase :** Je calcule Speed, Zomma et Ultima à partir des sensibilités déjà obtenues. Je recalcule ensuite le prix Black-Scholes et je divise Delta multiplié par le spot par ce prix pour obtenir Lambda.
+
 Speed = effet du spot sur Gamma ; Zomma = effet de sigma sur Gamma ; Ultima = effet de sigma sur Vomma. `**2` calcule des carrés. Lambda divise Delta fois spot par la prime : une prime presque nulle rend cette élasticité instable ou indéfinie.
 
 ### 4.26 Exporter les sensibilités complémentaires
@@ -781,6 +831,8 @@ Speed = effet du spot sur Gamma ; Zomma = effet de sigma sur Gamma ; Ultima = ef
     }
 ```
 
+**Traduction en phrase :** Je rassemble les huit sensibilités complémentaires dans un dictionnaire et je le renvoie.
+
 Le dictionnaire renvoie les huit résultats, y compris Color malgré l’erreur signalée. Il ne filtre pas les valeurs infinies ou `NaN`. Arrondir plus tard ne corrige pas une valeur non finie.
 
 ### 4.27 Prix forward théorique
@@ -793,6 +845,8 @@ def forward_price(S0, T, r, q):
     F=S0*np.exp((r-q)*T)
     return F
 ```
+
+**Traduction en phrase :** Je multiplie le spot par l’exponentielle du coût de portage net sur la durée restante, puis je renvoie ce prix forward.
 
 `exp((r-q)*T)` capitalise le spot au coût de portage net. F est le prix de livraison qui donne une valeur initiale nulle au nouveau forward ; ce n’est pas la valeur d’un contrat déjà engagé.
 
@@ -813,6 +867,8 @@ def forward_value(S0, K, T, r, q, side):
     return valeur
 ```
 
+**Traduction en phrase :** Je calcule le prix forward équitable. Pour un achat, je soustrais le prix contractuel à ce prix équitable ; sinon, je fais l’inverse. J’actualise cet écart et je renvoie la valeur du contrat.
+
 On compare F au strike contractuel K, puis on actualise l’écart. `buy` donne la valeur longue ; toute autre chaîne entre dans la branche vendeuse. `K=F` donne zéro. Une validation de `side` manque.
 
 ### 4.29 Payoff forward et différence avec les futures
@@ -828,6 +884,8 @@ def forward_payoff(ST, K, side):
         payoff = K-ST
     return payoff
 ```
+
+**Traduction en phrase :** Pour un achat, je renvoie le prix final moins le prix contractuel. Sinon, je renvoie le prix contractuel moins le prix final.
 
 Le long reçoit `ST-K` et le short `K-ST`. Pas de plancher à zéro : le forward engage les deux parties, même si son flux devient négatif. La même soustraction peut fonctionner sur un nombre ou un tableau NumPy.
 
@@ -848,6 +906,8 @@ def make_position(option_type, side, K, T, qty=1):
     }
 ```
 
+**Traduction en phrase :** Je crée et renvoie une fiche décrivant une option : son type, son sens, son strike, sa maturité et sa quantité, égale à un si elle n’est pas précisée.
+
 Ce constructeur décrit une leg sans la valoriser. `qty=1` est le défaut ; passer 2 double sa taille. Le dictionnaire conserve instrument, type, sens, strike, maturité et quantité. Aucun champ ne prévoit un style américain : les stratégies utilisent BS.
 
 ### 4.31 Décrire une leg action
@@ -863,6 +923,8 @@ def make_stock_position(side, qty=1):
         "qty": qty,
     }
 ```
+
+**Traduction en phrase :** Je crée et renvoie une fiche décrivant une action, avec son sens et sa quantité.
 
 Une action n’a ni strike ni maturité d’option : son dictionnaire conserve seulement instrument, sens et quantité. Le type `stock` permet ensuite de choisir la bonne formule sans paramètres fictifs.
 
@@ -882,6 +944,8 @@ def price_leg(leg, S0, r, q, sigma):
 
     return sign * leg["qty"] * prix_unitaire
 ```
+
+**Traduction en phrase :** Je donne le signe plus à un achat et le signe moins sinon. Si la leg est une action, je prends le spot comme prix ; sinon, je calcule son prix Black-Scholes. Je multiplie ce prix par le signe et la quantité.
 
 Le signe transforme achat/vente en +1/−1. L’action vaut S0 ; l’option reçoit un prix BS. Le produit `sign*qty*prix_unitaire` est un coût signé : positif pour payer, négatif pour recevoir. Le flux initial de trésorerie est son opposé. `1 if ... else -1` est une expression conditionnelle : elle renvoie 1 si le sens vaut buy, −1 sinon. Une prime de 4 à quantité 3 donne donc +12 à l’achat et −12 à la vente. Une quantité nulle annule le coût ; une quantité négative inverse le sens.
 
@@ -904,6 +968,8 @@ def payoff_leg(leg, ST):
 
     return sign * leg["qty"] * payoff
 ```
+
+**Traduction en phrase :** Je détermine le signe de la position. Pour une action, je prends sa valeur finale ; pour une option, je calcule son payoff de call ou de put. Je multiplie le résultat par le signe et la quantité.
 
 L’action renvoie ST, sa valeur terminale brute ; l’option renvoie son intrinsèque. Le signe et la quantité s’appliquent ensuite à chaque point du tableau. Écrire `ST-S0` ici soustrairait deux fois le coût, car il est déjà retiré au niveau de la stratégie.
 
@@ -929,6 +995,8 @@ def payoff_strategie(legs, S0, r, q, sigma, ST_grid):
     }
 ```
 
+**Traduction en phrase :** Je prépare des totaux nuls. Pour chaque leg, j’ajoute son payoff au tableau total et son coût signé au coût total. Je soustrais ensuite ce coût à chaque payoff total, puis je renvoie les payoffs et les profits ou pertes.
+
 `zeros_like` prépare un total pour chaque spot final ; `cout_total=0` prépare un scalaire. La boucle additionne les legs, puis soustrait le coût à chaque scénario par broadcasting. Le P&L ignore financement et dividendes reçus sur l’action. Il suppose aussi une échéance de comparaison commune.
 
 ### 4.35 Grecques d’une stratégie : initialisation et action
@@ -951,6 +1019,8 @@ def greeks_strategie(legs, S0, r, q, sigma):
             grecs = grecs_primaires_bs(S0, leg["K"], leg["T"], r, q, sigma, leg["option_type"])
 ```
 
+**Traduction en phrase :** Je prépare cinq sensibilités totales à zéro. Pour chaque leg, je détermine son signe. Si c’est une action, j’ajoute sa quantité signée au Delta ; sinon, je calcule ses grecques Black-Scholes.
+
 On initialise cinq totaux à zéro. Une action de valeur spot S a Delta 1 et les quatre autres dérivées nulles dans ce cadre. Pour une option, on appelle les grecques BS. `total['Delta']` sélectionne une clé, pas un indice.
 
 ### 4.36 Grecques d’une stratégie : agrégation signée
@@ -967,6 +1037,8 @@ On initialise cinq totaux à zéro. Une action de valeur spot S a Delta 1 et les
     return total
 ```
 
+**Traduction en phrase :** J’ajoute chacune des cinq grecques de l’option à son total, après multiplication par le signe et la quantité. Une fois les legs parcourues, je renvoie les totaux.
+
 Chaque ligne ajoute `sens × quantité × grecque unitaire`. Ainsi, vendre inverse bien les dérivées de position dans les stratégies. Les sensibilités s’additionnent parce que la dérivée d’une somme est la somme des dérivées. Les grecques secondaires ne sont pas agrégées ici.
 
 ### 4.37 Covered call
@@ -981,6 +1053,8 @@ def make_covered_call(K, T, qty=1):
         make_position("call", "sell", K, T, qty=qty),
     ]
 ```
+
+**Traduction en phrase :** Je renvoie deux legs de même quantité : une action achetée et un call vendu.
 
 La liste contient action achetée et call vendu. Payoff unitaire : `min(ST,K)`. La prime réduit le coût d’entrée, mais plafonne la hausse sans supprimer la perte en cas de baisse de l’action. Le constructeur fixe les sens.
 
@@ -997,6 +1071,8 @@ def make_protective_put(K, T, qty=1):
     ]
 ```
 
+**Traduction en phrase :** Je renvoie deux legs de même quantité : une action achetée et un put acheté.
+
 Action achetée + put acheté : payoff `max(ST,K)`. Le put crée un plancher de valeur terminale, au prix d’une prime. Ce plancher n’est pas un gain net : le coût initial reste à soustraire.
 
 ### 4.39 Straddle
@@ -1011,6 +1087,8 @@ def make_straddle(K, T, side="buy", qty=1):
         make_position("put", side, K, T, qty=qty),
     ]
 ```
+
+**Traduction en phrase :** Je renvoie un call et un put de mêmes strike, maturité, sens et quantité.
 
 Call et put de mêmes strike, échéance et sens. À l’achat, payoff `abs(ST-K)` ; il faut un déplacement suffisant pour couvrir les deux primes. Passer `side='sell'` inverse les deux legs. Passer `qty=2` double leurs tailles.
 
@@ -1027,6 +1105,8 @@ def make_strangle(K_put, K_call, T, side="buy", qty=1):
     ]
 ```
 
+**Traduction en phrase :** Je renvoie un call au strike K_call et un put au strike K_put, avec la même maturité, le même sens et la même quantité.
+
 Call au strike haut et put au strike bas, normalement `K_put<K_call`. Entre les strikes, le payoff long est nul. Le code ne vérifie pas cet ordre. Le sens est transmis aux deux options, contrairement aux spreads à sens fixés.
 
 ### 4.41 Bull call spread
@@ -1041,6 +1121,8 @@ def make_call_spread(K1, K2, T, qty=1):
         make_position("call", "sell", K2, T, qty=qty),
     ]
 ```
+
+**Traduction en phrase :** Je renvoie un call acheté au strike K1 et un call vendu au strike K2, de mêmes maturité et quantité.
 
 Call acheté bas K1, call vendu haut K2 : on attend `K1<K2`. Payoff borné entre 0 et `K2-K1`. Échanger les strikes change l’exposition et ne correspond plus au bull call spread annoncé.
 
@@ -1057,6 +1139,8 @@ def make_put_spread(K1, K2, T, qty=1):
     ]
 ```
 
+**Traduction en phrase :** Je renvoie un put acheté au strike K1 et un put vendu au strike K2, de mêmes maturité et quantité.
+
 Put acheté haut K1, put vendu bas K2 : on attend cette fois `K1>K2`. Payoff borné entre 0 et `K1-K2`. L’ordre est donc l’inverse de celui attendu pour le call spread.
 
 ### 4.43 Collar
@@ -1072,6 +1156,8 @@ def make_collar(K_put, K_call, T, qty=1):
         make_position("call", "sell", K_call, T, qty=qty),
     ]
 ```
+
+**Traduction en phrase :** Je renvoie trois legs de même quantité : une action achetée, un put acheté au strike K_put et un call vendu au strike K_call.
 
 Action longue, put acheté bas, call vendu haut : la valeur terminale est encadrée par les strikes. Le call aide à financer le put, mais les primes ne se compensent pas forcément. La liste a trois legs, quelle que soit `qty`.
 
@@ -1101,6 +1187,8 @@ from pricer_engine import (
 app = Flask(__name__)
 ```
 
+**Traduction en phrase :** Je charge les outils Flask, NumPy et les fonctions du moteur dont l’application a besoin, puis je crée l’application Flask.
+
 Flask reçoit les requêtes ; `render_template` prépare le HTML ; `request` lit les entrées ; `jsonify` produit les réponses. L’import parenthésé rassemble les fonctions du moteur. `Flask(__name__)` crée l’application et fournit son identité de module pour localiser les ressources.
 
 ### 5.2 Construire la grille de prix finaux
@@ -1116,6 +1204,8 @@ def _grid(centres, n_points=121, low=0.4, high=1.6):
     hi = max(centres) * high
     return np.linspace(lo, hi, n_points)
 ```
+
+**Traduction en phrase :** Je prends 40 % du plus petit niveau de référence, sans descendre sous 0,01, comme borne basse. Je prends 160 % du plus grand comme borne haute. Je renvoie 121 points régulièrement espacés entre ces bornes, sauf paramètres différents.
 
 `min` et `max` prennent les niveaux extrêmes. `low=0.4` signifie 40 % du minimum, donc 60 % en dessous : la docstring annonce à tort −40 %. Passer `low=0.6` donnerait réellement −40 %. Le plancher 0.01 évite zéro ; `np.linspace(lo,hi,121)` crée 121 points régulièrement espacés, bornes incluses, donc 120 intervalles. Avec 3 points entre 0 et 10, on obtient `[0,5,10]`. Augmenter ce nombre affine le graphique, pas les simulations MC.
 
@@ -1137,6 +1227,8 @@ def _find_breakevens(ST_grid, pnl):
     signs = np.sign(pnl)
 ```
 
+**Traduction en phrase :** Je prépare une liste vide pour les breakevens et je transforme chaque profit ou perte en un signe : négatif, nul ou positif.
+
 `np.sign(pnl)` renvoie −1 pour une perte, 0 pour zéro et +1 pour un gain. `breakevens=[]` prépare la liste des racines. La docstring explique pourquoi l’interpolation est écrite directement : un P&L peut croître ou décroître entre deux points.
 
 ### 5.4 Breakevens : interpolation linéaire et défaut des zéros exacts
@@ -1151,6 +1243,8 @@ def _find_breakevens(ST_grid, pnl):
     return breakevens
 ```
 
+**Traduction en phrase :** Je compare les signes de chaque paire de points voisins. S’ils sont différents et tous deux non nuls, je calcule où la droite entre ces points coupe zéro, j’arrondis ce niveau à deux décimales et je l’ajoute à la liste. Je renvoie cette liste.
+
 On inspecte des paires voisines sans dépasser le tableau. La formule trouve le zéro de la droite joignant les deux points. `round(...,2)` garde deux décimales. **Défaut :** les tests `!=0` excluent un zéro exact : `[-10,0,10]` n’est pas détecté. Hors grille, deux racines dans un intervalle et plateaux posent aussi problème.
 
 ### 5.5 Une réponse d’erreur commune
@@ -1161,6 +1255,8 @@ On inspecte des paires voisines sans dépasser le tableau. La formule trouve le 
 def _err(message, code=400):
     return jsonify({"error": message}), code
 ```
+
+**Traduction en phrase :** Je renvoie un message d’erreur en JSON accompagné du statut HTTP demandé, égal à 400 par défaut.
 
 Le retour est une paire `(réponse, statut HTTP)`. `code=400` est le défaut pour une requête invalide ; `code=500` annoncerait une erreur serveur. Changer le nombre change le statut, pas le message JSON. Tous les appels actuels utilisent le défaut, même pour certaines pannes externes.
 
@@ -1179,6 +1275,8 @@ def api_search_ticker():
     except Exception as e:
         return _err(str(e))
 ```
+
+**Traduction en phrase :** Quand une recherche de ticker arrive, je lis le texte et retire les espaces aux extrémités. S’il est vide, je renvoie une liste vide. Sinon, je lance la recherche et renvoie ses résultats ; si une exception remonte, je renvoie son message.
 
 Le décorateur enregistre une route GET. `q` est ici une recherche textuelle, pas le dividende. `.strip()` enlève les espaces de bord ; une recherche vide donne une liste vide. Les exceptions sont converties en message. `.get('q','')` lit q et utilise une chaîne vide seulement si la clé manque. `.strip()` transforme par exemple `' Apple '` en `'Apple'`. `@app.get` associe la fonction à une requête HTTP GET ; `try` tente le traitement et `except Exception as e` récupère une éventuelle exception dans e.
 
@@ -1202,6 +1300,8 @@ def api_market(ticker):
         return _err(f"Impossible de récupérer les données pour '{ticker}' : {e}")
 ```
 
+**Traduction en phrase :** Quand un ticker est demandé, je récupère son spot, sa devise et le VIX. Je renvoie ces données, en arrondissant les nombres à quatre décimales. Si une étape échoue, je renvoie un message d’erreur.
+
 `<ticker>` est une partie variable de l’URL transmise à la fonction. Trois lectures se suivent : spot, devise, VIX. Une seule panne fait échouer l’ensemble. `f'...{ticker}...{e}'` insère les valeurs dans le message ; `round(...,4)` limite les décimales affichées.
 
 ### 5.8 Page principale
@@ -1213,6 +1313,8 @@ def api_market(ticker):
 def index():
     return render_template("index.html")
 ```
+
+**Traduction en phrase :** Quand le client demande la page d’accueil, je rends le fichier index.html.
 
 GET `/` appelle le template `templates/index.html`, présent dans le dossier. Changer le nom demanderait un fichier correspondant. La présence du HTML ne prouve pas que les interactions avec l’API fonctionnent.
 
@@ -1233,6 +1335,8 @@ def api_option():
         q = float(data["q"]) / 100
         sigma = float(data["sigma"]) / 100
 ```
+
+**Traduction en phrase :** Quand une requête de pricing option arrive, je lis son JSON. Je convertis spot, strike et maturité en nombres, puis je convertis taux, rendement de dividende et volatilité de pourcentages en décimaux.
 
 Le JSON est lu puis les nombres sont convertis. Diviser r, q et sigma par 100 transforme des pourcentages en décimaux : envoyer sigma=20 signifie 20 %. `get_json(force=True)` tente de décoder le corps en JSON même si l’en-tête HTTP ne l’annonce pas. Avec `force=False`, Flask contrôle le type de contenu. Ni l’un ni l’autre ne vérifie que le JSON contient les bons paramètres financiers. Un champ obligatoire absent provoque `KeyError`.
 
@@ -1255,6 +1359,8 @@ Le JSON est lu puis les nombres sont convertis. Diviser r, q et sigma par 100 tr
             return _err("Les paramètres doivent être strictement positifs.")
 ```
 
+**Traduction en phrase :** Je lis le type et le style de l’option. Je prends le sens, la méthode et le nombre de simulations fournis, ou leurs valeurs par défaut. Je refuse un type ou un style inconnu, ainsi qu’un spot, un strike, une maturité ou une volatilité non strictement positifs.
+
 Les défauts sont buy, auto et 30 000. `not in (...)` refuse les types/styles inconnus ; `or` rejette dès qu’une condition de positivité échoue. Il manque des contrôles sur side, method, finitude et nombre de simulations. `int(...)` peut tronquer au lieu de refuser une valeur non entière.
 
 ### 5.11 Sélection du modèle réellement appliqué
@@ -1273,6 +1379,8 @@ Les défauts sont buy, auto et 30 000. `not in (...)` refuse les types/styles in
             price = longstaff_schwartz(S0, K, T, r, q, sigma, option_type, n_simulations)
             used = "longstaff_schwartz"
 ```
+
+**Traduction en phrase :** Si l’option est européenne et que la méthode demandée est Monte-Carlo, je lance Monte-Carlo ; pour les autres méthodes européennes, je lance Black-Scholes. Si elle est américaine, je lance Longstaff-Schwartz. Je mémorise le nom du modèle utilisé.
 
 Européenne + `monte_carlo` → MC ; européenne + toute autre valeur → BS ; américaine → LSM quel que soit method. `used` conserve le modèle effectivement appliqué. Ajouter `n_steps` au JSON ne le change pas : la route ne lit pas ce champ.
 
@@ -1297,6 +1405,8 @@ Européenne + `monte_carlo` → MC ; européenne + toute autre valeur → BS ; a
         breakevens = _find_breakevens(ST_grid, pnl)
 ```
 
+**Traduction en phrase :** Je calcule les grecques Black-Scholes. Je détermine ensuite le signe de la position, je crée une grille de spots finaux et je calcule le payoff signé. Je retire la prime signée pour obtenir le profit ou la perte, puis je cherche les breakevens.
+
 Les grecques restent BS même pour une américaine. Le signe s’applique seulement aux courbes : en vente, les grecques renvoyées restent longues. La grille représente l’intrinsèque terminal moins la prime, pas les flux d’exercice anticipé d’une américaine.
 
 ### 5.13 Sérialiser la réponse option
@@ -1316,6 +1426,8 @@ Les grecques restent BS même pour une américaine. Le signe s’applique seulem
         })
 ```
 
+**Traduction en phrase :** Je prépare une réponse JSON contenant le prix, le modèle utilisé, les grecques, les breakevens et les courbes. Je convertis les valeurs en nombres Python et je les arrondis avant de les renvoyer.
+
 Les dictionnaires gardent les noms des grecques ; les tableaux deviennent des listes. `float` normalise les scalaires, `round` ajuste l’affichage. Prix/courbes : 4 décimales ; grecques : 6. `price` reste la prime unitaire non signée. `round(x,4)` garde quatre décimales : 1,23456 devient 1,2346 ; 2 garderait deux décimales et −2 arrondirait à la centaine. `[... for x in ST_grid]` construit une liste en transformant chaque x. `{k: ... for k,v in primaires.items()}` fait la même chose pour un dictionnaire : `.items()` fournit les couples nom/valeur.
 
 ### 5.14 Exceptions de la route option
@@ -1328,6 +1440,8 @@ Les dictionnaires gardent les noms des grecques ; les tableaux deviennent des li
     except Exception as e:
         return _err(str(e))
 ```
+
+**Traduction en phrase :** Si une clé manque, je renvoie un message indiquant le paramètre absent. Pour toute autre exception interceptée, je renvoie son message.
 
 La première branche traite les clés manquantes ; la seconde traite les autres exceptions. L’ordre va du spécifique au général. Les deux renvoient HTTP 400. Un avertissement NumPy ou un `NaN` peut ne pas déclencher ces branches.
 
@@ -1355,6 +1469,8 @@ def api_forward():
         valeur = forward_value(S0, K, T, r, q, side)
 ```
 
+**Traduction en phrase :** Quand une requête forward arrive, je lis ses paramètres et convertis les pourcentages. Je refuse un spot ou une maturité non strictement positifs. Je calcule ensuite le prix forward équitable et la valeur du contrat au prix contractuel fourni.
+
 Même lecture JSON, sans volatilité : le forward n’en utilise pas dans ce modèle. Seuls S0 et T sont contrôlés positifs. `F` est un prix de livraison ; `valeur` dépend aussi de K et du sens. Les deux résultats ne doivent pas être confondus.
 
 ### 5.16 Route forward : tableau des flux et convention de P&L
@@ -1371,6 +1487,8 @@ Même lecture JSON, sans volatilité : le forward n’en utilise pas dans ce mod
 
         breakevens = _find_breakevens(ST_grid, pnl)
 ```
+
+**Traduction en phrase :** Je crée une grille de spots finaux et je calcule le payoff forward pour chacun. Je soustrais la valeur actuelle du contrat à ces payoffs, puis je cherche les zéros du résultat.
 
 La compréhension calcule un payoff par spot puis `np.array` crée le tableau. `pnl=payoff-valeur` soustrait une valeur actuelle à un flux terminal : convention simplifiée. Pour un contrat acquis aujourd’hui et financé, on retrancherait `valeur*exp(r*T)` ; l’historique d’un contrat déjà détenu est une autre question.
 
@@ -1394,6 +1512,8 @@ La compréhension calcule un payoff par spot puis `np.array` crée le tableau. `
         return _err(str(e))
 ```
 
+**Traduction en phrase :** Je renvoie en JSON le prix forward, la valeur actuelle et les courbes arrondies. Si un paramètre manque ou qu’une autre exception survient, je renvoie le message d’erreur correspondant.
+
 Le JSON distingue F, valeur actuelle signée et profils de résultat. Il n’expose pas de grecques forward. Les conversions et exceptions suivent le même mécanisme que la route option.
 
 ### 5.18 Table de dispatch des stratégies
@@ -1411,6 +1531,8 @@ STRATEGY_BUILDERS = {
     "collar":         lambda p: make_collar(p["K_put"], p["K_call"], p["T"], qty=p["qty"]),
 }
 ```
+
+**Traduction en phrase :** Je construis un dictionnaire associant chaque nom de stratégie à une fonction qui préparera ses legs à partir des paramètres reçus.
 
 Chaque clé choisit une lambda, appelée ensuite avec params. Seuls straddle et strangle transmettent le side global ; les autres recettes fixent leurs achats/ventes. Les parenthèses après une fonction l’appellent ; sans cet appel, on conserve simplement l’objet fonction.
 
@@ -1430,6 +1552,8 @@ STRATEGY_STRIKES = {
 }
 ```
 
+**Traduction en phrase :** Pour chaque stratégie disponible, j’indique la liste des noms de strikes dont elle a besoin.
+
 Chaque liste indique les clés de strike à lire. `['K']` contient un nom, pas un strike chiffré. Les spreads attendent K1/K2, strangle/collar K_put/K_call. Cette table sert aussi à la grille mais ne valide pas l’ordre des strikes.
 
 ### 5.20 Route stratégie : vérifier le nom
@@ -1446,6 +1570,8 @@ def api_strategy():
         if strategy not in STRATEGY_BUILDERS:
             return _err("Stratégie inconnue.")
 ```
+
+**Traduction en phrase :** Quand une requête stratégie arrive, je lis son JSON et son nom de stratégie. Si ce nom ne figure pas dans les constructeurs disponibles, je renvoie une erreur.
 
 `.get('strategy')` vaut None si la clé est absente. `strategy not in STRATEGY_BUILDERS` teste les noms disponibles. La route accepte sept recettes, pas une liste libre de legs transmise par le client.
 
@@ -1466,6 +1592,8 @@ def api_strategy():
             return _err("Les paramètres doivent être strictement positifs.")
 ```
 
+**Traduction en phrase :** Je lis les données de marché, la maturité, la quantité et le sens, en appliquant les conversions et défauts prévus. Je refuse un spot, une maturité ou une volatilité non strictement positifs.
+
 Les taux sont convertis comme pour l’option. `qty` devient un flottant : quantités fractionnaires, nulles ou négatives ne sont pas rejetées. Le test vérifie seulement spot, maturité et volatilité. Lire `side` ne signifie pas que chaque recette l’utilise.
 
 ### 5.22 Route stratégie : construire legs et grille
@@ -1483,6 +1611,8 @@ Les taux sont convertis comme pour l’option. `qty` devient un flottant : quant
         ST_grid = _grid(centres)
 ```
 
+**Traduction en phrase :** Je rassemble les paramètres communs, puis je lis les strikes nécessaires à cette stratégie. J’appelle son constructeur pour obtenir les legs. Je rassemble le spot et les strikes pour créer la grille de prix finaux.
+
 On crée params puis ajoute les strikes exigés. `STRATEGY_BUILDERS[strategy](params)` choisit et exécute le constructeur. `[S0]+[...]` concatène des listes pour former les centres de grille ; par exemple `[100]+[95,110]` donne `[100,95,110]`. Le signe + concatène ici des listes. Sur des tableaux NumPy, + additionnerait au contraire les valeurs selon leurs dimensions.
 
 ### 5.23 Route stratégie : déléguer les calculs
@@ -1495,6 +1625,8 @@ On crée params puis ajoute les strikes exigés. `STRATEGY_BUILDERS[strategy](pa
 
         breakevens = _find_breakevens(ST_grid, resultat["pnl"])
 ```
+
+**Traduction en phrase :** Je demande au moteur les payoffs et profits ou pertes de la stratégie, puis ses grecques agrégées. Je cherche ensuite les breakevens de son profit ou de sa perte.
 
 Le moteur calcule les courbes et les grecques, puis l’utilitaire cherche les zéros. Les options des stratégies restent européennes BS : un champ JSON `style='american'` supplémentaire serait ignoré.
 
@@ -1518,6 +1650,8 @@ Le moteur calcule les courbes et les grecques, puis l’utilitaire cherche les z
         return _err(str(e))
 ```
 
+**Traduction en phrase :** Je renvoie les grecques, les breakevens, les courbes et le nombre de legs en JSON. Si une clé manque ou qu’une autre exception survient, je renvoie un message d’erreur.
+
 `greeks` contient les sensibilités agrégées ; `n_legs=len(legs)` compte les composantes, donc 2 ou 3, pas leur quantité. Le coût initial et les legs ne sont pas renvoyés séparément. Les exceptions utilisent le format commun.
 
 ### 5.25 Point d’entrée du programme
@@ -1528,6 +1662,8 @@ Le moteur calcule les courbes et les grecques, puis l’utilitaire cherche les z
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False)
 ```
+
+**Traduction en phrase :** Si ce fichier est exécuté directement, je démarre le serveur Flask en mode debug, sans rechargement automatique.
 
 Le test démarre le serveur seulement lorsque le fichier est exécuté directement. En cas d’import, les routes sont déclarées mais `app.run` n’est pas appelé. `debug=True` active le débogage ; `use_reloader=False` désactive seulement le redémarrage automatique, pas le debug.
 
