@@ -21,7 +21,6 @@ Ce guide privilégie des explications courtes et des exemples concrets : **que s
 | `pricer_engine.py` | Calcule les prix, les sensibilités, les stratégies et récupère des données Yahoo |
 | `main.py` | Reçoit les requêtes, convertit les entrées et renvoie du JSON |
 | `templates/index.html` | Page appelée par Flask ; présente, mais non vérifiée dans un navigateur |
-| `strutu_engine.py` | Présent dans le dossier, mais non importé par ce `main.py` ; hors périmètre |
 
 **Circuit :** client → Flask → moteur → Flask → réponse JSON. Le moteur n’a pas besoin de Flask, mais son import nécessite NumPy et yfinance.
 
