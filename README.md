@@ -359,7 +359,7 @@ Le code affiche $H-C_0$. Un résultat terminal financé, sans flux intermédiair
 <a id="engine"></a>
 ## 4. `pricer_engine.py`, bloc par bloc
 
-Les explications renvoient aux exemples de syntaxe du §2 pour éviter les répétitions.
+Chaque bloc explique directement les écritures utiles à sa compréhension.
 
 ### 4.1 Importer les outils numériques
 
@@ -408,7 +408,7 @@ def search_tickers(query, max_results=8):
     ]
 ```
 
-La compréhension parcourt les résultats, conserve ceux ayant un symbole et produit trois champs. Les `or` choisissent le premier nom non vide. Ici, `r` est un résultat Yahoo, pas le taux financier. Voir §2.11 pour `.get` et `or`.
+La compréhension parcourt les résultats, conserve ceux ayant un symbole et produit trois champs. Les `or` choisissent le premier nom non vide. Ici, `r` est un résultat Yahoo, pas le taux financier. `.get('symbol')` lit la clé et renvoie `None` si elle manque, contrairement à `r['symbol']` qui déclencherait une erreur. `a or b` garde a si sa valeur est considérée vraie, sinon prend b : ici, un nom vide ou absent fait passer au suivant.
 
 ### 4.4 Dernier prix et devise
 
@@ -501,7 +501,7 @@ def monte_carlo(S0, K, T, r, q, sigma, option_type, n_simulations):
     )
 ```
 
-Les arguments de `normal(0,1,N)` sont détaillés au §2.6. L’exponentielle simule directement les prix finaux : aucune trajectoire intermédiaire n’est nécessaire pour une vanilla européenne. Pas de graine dans la fonction : deux appels peuvent donner des résultats différents.
+Dans `normal(0,1,N)`, 0 est la moyenne, 1 l’écart-type et N le nombre de tirages. Mettre 2 à la place de 1 doublerait l’écart-type des chocs ; la volatilité étant déjà appliquée ensuite, cela fausserait le modèle. Augmenter N augmente le coût et réduit généralement le bruit statistique. L’exponentielle simule directement les prix finaux : aucune trajectoire intermédiaire n’est nécessaire pour une vanilla européenne. Pas de graine dans la fonction : deux appels peuvent donner des résultats différents.
 
 ### 4.10 Monte-Carlo : payoff, moyenne et actualisation
 
@@ -518,7 +518,7 @@ Les arguments de `normal(0,1,N)` sont détaillés au §2.6. L’exponentielle si
     return prix
 ```
 
-`maximum(...,0)` applique le droit de ne pas exercer. `mean` estime l’espérance, puis `exp(-r*T)` l’actualise. Remplacer `mean` par `sum` multiplierait l’estimation par le nombre de simulations. Voir §2.7 pour les opérations sur tableaux.
+`maximum(...,0)` applique le droit de ne pas exercer. `mean` estime l’espérance, puis `exp(-r*T)` l’actualise. Remplacer `mean` par `sum` multiplierait l’estimation par le nombre de simulations. `np.maximum` compare chaque case à zéro : `[-5,0,8]` devient `[0,0,8]`. `np.mean` additionne les cases puis divise par leur nombre ; `np.sum` les additionne seulement. Ces opérations portent ici sur tous les scénarios.
 
 ### 4.11 LSM : calendrier et matrice de trajectoires
 
@@ -534,7 +534,7 @@ def longstaff_schwartz(S0, K, T, r, q, sigma, option_type, n_simulations, n_step
     prix[:, 0] = S0
 ```
 
-`dt=T/n_steps` est la durée d’un pas. `n_steps=100` signifie 100 intervalles et 101 dates, grâce au `+1`. `prix[:,0]=S0` remplit la colonne initiale. Avec 200 pas, l’exercice est examiné plus souvent, mais le coût augmente ; 0 provoquerait une division par zéro. Voir §2.2 et §2.5.
+`dt=T/n_steps` est la durée d’un pas. `n_steps=100` signifie 100 intervalles et 101 dates, grâce au `+1`. `prix[:,0]=S0` remplit la colonne initiale. Avec 200 pas, l’exercice est examiné plus souvent, mais le coût augmente ; 0 provoquerait une division par zéro. Dans `zeros((N,M+1))`, le tuple indique N lignes et M+1 colonnes. Dans `prix[:,0]`, `:` sélectionne toutes les lignes et 0 la première colonne ; 1 désignerait la deuxième, −1 la dernière. Ici, chaque ligne est une trajectoire et chaque colonne une date.
 
 ### 4.12 LSM : avancer dans le temps
 
@@ -551,7 +551,7 @@ def longstaff_schwartz(S0, K, T, r, q, sigma, option_type, n_simulations, n_step
         )
 ```
 
-La boucle remplit les dates 1 à `n_steps`, incluses. `t-1` lit la date précédente ; `t` écrit la nouvelle. Chaque pas utilise de nouveaux chocs. La transition MBG est exacte entre deux dates ; c’est l’ensemble des dates d’exercice qui est discret. Voir §2.4.
+La boucle remplit les dates 1 à `n_steps`, incluses. `t-1` lit la date précédente ; `t` écrit la nouvelle. Chaque pas utilise de nouveaux chocs. La transition MBG est exacte entre deux dates ; c’est l’ensemble des dates d’exercice qui est discret. `range(1,n_steps+1)` part de 1 et exclut sa borne finale : avec 4 pas, il produit 1,2,3,4. Sans le `+1`, la dernière date ne serait pas calculée. Le pas omis vaut +1 ; un pas de 2 sauterait une date sur deux.
 
 ### 4.13 LSM : valeurs intrinsèques et condition terminale
 
@@ -598,7 +598,7 @@ On revient de l’avant-dernière date jusqu’à la date 1. `*=` actualise tous
             X_norm = (X - X_mean) / X_std
 ```
 
-Le masque `itm` sélectionne X et Y pour les mêmes trajectoires. X contient leurs spots actuels ; Y, les flux futurs déjà actualisés. Le centrage-réduction améliore la stabilité de la régression. `X.std()` peut valoir zéro ; aucun garde-fou n’est prévu. Voir §2.8.
+Le masque `itm` sélectionne X et Y pour les mêmes trajectoires. X contient leurs spots actuels ; Y, les flux futurs déjà actualisés. Le centrage-réduction améliore la stabilité de la régression. `X.std()` peut valoir zéro ; aucun garde-fou n’est prévu. `X.mean()` calcule la moyenne ; `X.std()` calcule l’écart-type, avec un diviseur égal au nombre d’observations par défaut. `(X-X_mean)/X_std` recentre les valeurs sur zéro et ramène leur dispersion à une échelle commune. Si tous les X sont identiques, la division par zéro rend le résultat inutilisable.
 
 ### 4.16 LSM : régression et décision d’exercice
 
@@ -614,7 +614,7 @@ Le masque `itm` sélectionne X et Y pour les mêmes trajectoires. X contient leu
             cashflow[indices[exercice]] = payoff[indices[exercice], t]
 ```
 
-Le `2` de `polyfit` signifie polynôme quadratique. `polyval` calcule la continuation estimée. `exercice` teste si l’intrinsèque la dépasse ; `where(itm)[0]` retrouve les indices globaux. On remplace le flux futur par le flux d’exercice, on ne les additionne pas. Exemples détaillés aux §2.3 et §2.9.
+Le `2` de `polyfit` signifie polynôme quadratique. `polyval` calcule la continuation estimée. `exercice` teste si l’intrinsèque la dépasse ; `where(itm)[0]` retrouve les indices globaux. On remplace le flux futur par le flux d’exercice, on ne les additionne pas. `polyfit(X,Y,2)` ajuste trois coefficients : a*x²+b*x+c ; 1 donnerait une droite, 0 une constante et 3 un polynôme cubique. `polyval` évalue ces coefficients dans l’ordre décroissant des puissances. `where(itm)` renvoie un tuple contenant un tableau d’indices ; `[0]` extrait ce tableau entier, pas son premier indice. Pour `[False,True,False,True]`, il vaut `[1,3]`. `[1]` échouerait car ce tuple ne contient qu’un élément. `indices[exercice]` conserve ensuite les indices où le masque exercice est vrai.
 
 ### 4.17 LSM : revenir à aujourd’hui et imposer l’intrinsèque
 
@@ -653,7 +653,7 @@ def grecs_primaires_bs(S0, K, T, r, q, sigma, option_type):
     Vega = S0*np.exp(-q*T)*Npdf(d1)*np.sqrt(T)
 ```
 
-Delta change avec call/put ; Gamma et Vega ont ici la même formule pour les deux types. `Npdf(d1)` est la densité normale. Les définitions et unités sont au §3. Le `-1` dans le Delta put est une soustraction issue de la formule, pas un indice de tableau.
+Delta change avec call/put ; Gamma et Vega ont ici la même formule pour les deux types. `Npdf(d1)` est la densité normale. Delta est la variation locale du prix par unité de spot ; Gamma est la variation de Delta par unité de spot ; Vega est la variation du prix par unité de volatilité décimale. Pour +1 point de volatilité, on multiplie Vega par 0,01. Le `-1` dans le Delta put est une soustraction issue de la formule, pas un indice de tableau.
 
 ### 4.19 Theta et Rho
 
@@ -883,7 +883,7 @@ def price_leg(leg, S0, r, q, sigma):
     return sign * leg["qty"] * prix_unitaire
 ```
 
-Le signe transforme achat/vente en +1/−1. L’action vaut S0 ; l’option reçoit un prix BS. Le produit `sign*qty*prix_unitaire` est un coût signé : positif pour payer, négatif pour recevoir. Le flux initial de trésorerie est son opposé. Voir §2.12.
+Le signe transforme achat/vente en +1/−1. L’action vaut S0 ; l’option reçoit un prix BS. Le produit `sign*qty*prix_unitaire` est un coût signé : positif pour payer, négatif pour recevoir. Le flux initial de trésorerie est son opposé. `1 if ... else -1` est une expression conditionnelle : elle renvoie 1 si le sens vaut buy, −1 sinon. Une prime de 4 à quantité 3 donne donc +12 à l’achat et −12 à la vente. Une quantité nulle annule le coût ; une quantité négative inverse le sens.
 
 ### 4.33 Payoff signé d’une leg
 
@@ -1078,7 +1078,7 @@ Action longue, put acheté bas, call vendu haut : la valeur terminale est encadr
 <a id="main"></a>
 ## 5. `main.py`, bloc par bloc
 
-Les explications renvoient aux exemples de syntaxe du §2 pour éviter les répétitions.
+Chaque bloc explique directement les écritures utiles à sa compréhension.
 
 ### 5.1 Imports et création de l’application
 
@@ -1117,7 +1117,7 @@ def _grid(centres, n_points=121, low=0.4, high=1.6):
     return np.linspace(lo, hi, n_points)
 ```
 
-`min` et `max` prennent les niveaux extrêmes. `low=0.4` signifie 40 % du minimum, donc 60 % en dessous : la docstring annonce à tort −40 %. Passer `low=0.6` donnerait réellement −40 %. Le plancher 0.01 évite zéro ; 121 est le nombre de points (§2.10), pas de simulations.
+`min` et `max` prennent les niveaux extrêmes. `low=0.4` signifie 40 % du minimum, donc 60 % en dessous : la docstring annonce à tort −40 %. Passer `low=0.6` donnerait réellement −40 %. Le plancher 0.01 évite zéro ; `np.linspace(lo,hi,121)` crée 121 points régulièrement espacés, bornes incluses, donc 120 intervalles. Avec 3 points entre 0 et 10, on obtient `[0,5,10]`. Augmenter ce nombre affine le graphique, pas les simulations MC.
 
 ### 5.3 Breakevens : préparer les signes
 
@@ -1180,7 +1180,7 @@ def api_search_ticker():
         return _err(str(e))
 ```
 
-Le décorateur enregistre une route GET. `q` est ici une recherche textuelle, pas le dividende. `.strip()` enlève les espaces de bord ; une recherche vide donne une liste vide. Les exceptions sont converties en message. Voir §2.11 et §2.13.
+Le décorateur enregistre une route GET. `q` est ici une recherche textuelle, pas le dividende. `.strip()` enlève les espaces de bord ; une recherche vide donne une liste vide. Les exceptions sont converties en message. `.get('q','')` lit q et utilise une chaîne vide seulement si la clé manque. `.strip()` transforme par exemple `' Apple '` en `'Apple'`. `@app.get` associe la fonction à une requête HTTP GET ; `try` tente le traitement et `except Exception as e` récupère une éventuelle exception dans e.
 
 ### 5.7 Route de données de marché
 
@@ -1234,7 +1234,7 @@ def api_option():
         sigma = float(data["sigma"]) / 100
 ```
 
-Le JSON est lu puis les nombres sont convertis. Diviser r, q et sigma par 100 transforme des pourcentages en décimaux : envoyer sigma=20 signifie 20 %. `force=True` ne valide pas les paramètres (§2.13). Un champ obligatoire absent provoque `KeyError`.
+Le JSON est lu puis les nombres sont convertis. Diviser r, q et sigma par 100 transforme des pourcentages en décimaux : envoyer sigma=20 signifie 20 %. `get_json(force=True)` tente de décoder le corps en JSON même si l’en-tête HTTP ne l’annonce pas. Avec `force=False`, Flask contrôle le type de contenu. Ni l’un ni l’autre ne vérifie que le JSON contient les bons paramètres financiers. Un champ obligatoire absent provoque `KeyError`.
 
 ### 5.10 Route option : valeurs par défaut et validations
 
@@ -1316,7 +1316,7 @@ Les grecques restent BS même pour une américaine. Le signe s’applique seulem
         })
 ```
 
-Les dictionnaires gardent les noms des grecques ; les tableaux deviennent des listes. `float` normalise les scalaires, `round` ajuste l’affichage. Prix/courbes : 4 décimales ; grecques : 6. `price` reste la prime unitaire non signée. Voir §2.10 et §2.13.
+Les dictionnaires gardent les noms des grecques ; les tableaux deviennent des listes. `float` normalise les scalaires, `round` ajuste l’affichage. Prix/courbes : 4 décimales ; grecques : 6. `price` reste la prime unitaire non signée. `round(x,4)` garde quatre décimales : 1,23456 devient 1,2346 ; 2 garderait deux décimales et −2 arrondirait à la centaine. `[... for x in ST_grid]` construit une liste en transformant chaque x. `{k: ... for k,v in primaires.items()}` fait la même chose pour un dictionnaire : `.items()` fournit les couples nom/valeur.
 
 ### 5.14 Exceptions de la route option
 
@@ -1483,7 +1483,7 @@ Les taux sont convertis comme pour l’option. `qty` devient un flottant : quant
         ST_grid = _grid(centres)
 ```
 
-On crée params puis ajoute les strikes exigés. `STRATEGY_BUILDERS[strategy](params)` choisit et exécute le constructeur. `[S0]+[...]` concatène des listes pour former les centres de grille ; ce n’est pas une addition élément par élément (§2.12).
+On crée params puis ajoute les strikes exigés. `STRATEGY_BUILDERS[strategy](params)` choisit et exécute le constructeur. `[S0]+[...]` concatène des listes pour former les centres de grille ; par exemple `[100]+[95,110]` donne `[100,95,110]`. Le signe + concatène ici des listes. Sur des tableaux NumPy, + additionnerait au contraire les valeurs selon leurs dimensions.
 
 ### 5.23 Route stratégie : déléguer les calculs
 
